@@ -1,0 +1,141 @@
+/* ============================================================
+   EXTRA.CSS — seções novas do Atlas das Línguas
+   Usa os mesmos tokens de cor e fonte do index.html.
+   ============================================================ */
+
+/* ---------- botão de ouvir (pronúncia) ---------- */
+.ouvir { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: 1.5px solid currentColor; background: transparent; color: inherit; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; }
+.ouvir svg { width: 15px; height: 15px; }
+.ouvir.tocando { animation: pulsar .9s ease-in-out infinite; }
+@keyframes pulsar { 50% { transform: scale(1.08); } }
+.ouvir-arara { margin-top: 12px; color: var(--tinta); }
+
+/* ---------- LIVRO 3D ---------- */
+.livro-palco { perspective: 2400px; padding-block: 20px 10px; }
+.livro { position: relative; width: min(1100px, 100%); aspect-ratio: 32 / 9; margin-inline: auto; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.2,.75,.2,1); transform: rotateX(8deg); }
+.livro.fechado-inicio { transform: rotateX(8deg) translateX(-25%); }
+.livro.fechado-fim { transform: rotateX(8deg) translateX(25%); }
+.livro::before { content: ""; position: absolute; inset: 6% 2% -9% 2%; background: radial-gradient(ellipse at center, rgba(0,0,0,.55), transparent 70%); transform: translateZ(-30px); filter: blur(10px); }
+.folha { position: absolute; left: 50%; top: 0; width: 50%; height: 100%; transform-origin: left center; transform-style: preserve-3d; transition: transform 1s cubic-bezier(.45,.05,.2,1); cursor: pointer; }
+.folha.virada { transform: rotateY(-180deg); }
+.folha .lado-f, .folha .lado-v { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; background: #f6efe0; }
+.folha .lado-f { border-radius: 2px 10px 10px 2px; box-shadow: inset 14px 0 18px -12px rgba(0,0,0,.35); }
+.folha .lado-v { transform: rotateY(180deg); border-radius: 10px 2px 2px 10px; box-shadow: inset -14px 0 18px -12px rgba(0,0,0,.35); }
+.folha img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.folha .capa-fundo { background: #1d2a4d; }
+/* sombra que passa pela página durante a virada */
+.folha .lado-f::after, .folha .lado-v::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.28), transparent 40%); opacity: 0; transition: opacity 1s; pointer-events: none; }
+.folha.virando .lado-f::after, .folha.virando .lado-v::after { opacity: 1; }
+.livro-controles { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 34px; flex-wrap: wrap; }
+.livro-controles .contador-livro { font-variant-numeric: tabular-nums; color: var(--texto-suave); font-weight: 700; min-width: 170px; text-align: center; }
+.botao-claro { cursor: pointer; border: 1.5px solid var(--linha); background: var(--noite-2); color: var(--texto); border-radius: 999px; padding: 11px 18px; font-weight: 700; }
+.botao-claro:hover:not(:disabled) { border-color: var(--texto); }
+.botao-claro:disabled { opacity: .35; cursor: default; }
+.zoom { position: fixed; inset: 0; z-index: 90; background: rgba(5,8,16,.92); display: none; place-items: center; padding: 24px; }
+.zoom.aberto { display: grid; }
+.zoom img { max-width: min(1200px, 100%); max-height: 86vh; border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.zoom button { position: absolute; top: 18px; right: 18px; }
+@media (max-width: 700px) { .livro { transform: rotateX(4deg); } .livro.fechado-inicio, .livro.fechado-fim { transform: rotateX(4deg); } }
+
+/* ---------- CUBOS DO ALFABETO ---------- */
+.cubos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 18px 14px; perspective: 900px; }
+.cubo-btn { background: none; border: 0; cursor: pointer; height: 96px; color: inherit; perspective: 600px; }
+.cubo { --t: 48px; display: block; position: relative; width: 96px; height: 96px; margin-inline: auto; transform-style: preserve-3d; transition: transform .8s cubic-bezier(.3,1.4,.5,1); transform: translateZ(calc(var(--t) * -1)) rotateY(var(--giro, 0deg)) rotateX(-12deg); }
+.cubo-btn:hover .cubo { --inclina: 1; }
+.face-c { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 6px; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: 1px solid rgba(255,255,255,.08); }
+.face-c.f1 { transform: rotateY(0deg) translateZ(var(--t)); background: var(--es); color: var(--noite); font-family: var(--fonte-titulo); font-size: 46px; }
+.face-c.f2 { transform: rotateY(90deg) translateZ(var(--t)); background: #ff8a6e; color: var(--noite); }
+.face-c.f3 { transform: rotateY(180deg) translateZ(var(--t)); background: var(--noite-2); color: var(--texto); }
+.face-c.f4 { transform: rotateY(270deg) translateZ(var(--t)); background: #2a1c1a; color: var(--es); }
+.face-c b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 19px; line-height: 1.1; }
+.face-c small { display: block; font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .75; margin-top: 4px; }
+.cubos-barra { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 26px; }
+.legenda-cubo { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--texto-suave); }
+.legenda-cubo span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); vertical-align: -1px; }
+
+/* ---------- ÁRVORE DAS LÍNGUAS ---------- */
+.arvore-palco { perspective: 1400px; }
+.arvore { position: relative; background: var(--papel-2); border: 1px solid var(--linha-papel); border-radius: 24px; padding: 20px; transition: transform .3s ease-out; transform-style: preserve-3d; }
+.arvore svg { width: 100%; height: auto; display: block; overflow: visible; }
+.galho { fill: none; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 8 10; animation: fluir 1.6s linear infinite; }
+@keyframes fluir { to { stroke-dashoffset: -36; } }
+.no { cursor: pointer; }
+.no rect { transition: transform .25s; transform-box: fill-box; transform-origin: center; }
+.no:hover rect, .no.ativo rect { transform: scale(1.06); }
+.no.ativo rect { stroke-width: 3; }
+.no text { font-family: var(--fonte-titulo); font-size: 20px; pointer-events: none; }
+.no text.sub { font-family: var(--fonte-texto); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.arvore-info { margin-top: 18px; display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; background: var(--papel); border-radius: 16px; padding: 16px 18px; border-left: 5px solid var(--cor, var(--tinta)); min-height: 84px; }
+.arvore-info b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 24px; color: var(--tinta); }
+.arvore-info p { color: var(--tinta-suave); font-size: 15px; }
+@media (max-width: 700px) { .arvore { padding: 10px; } .arvore-info { grid-template-columns: 1fr; gap: 4px; } }
+
+/* ---------- JOGO DA MEMÓRIA ---------- */
+.memoria-topo { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { cursor: pointer; padding: 8px 14px; border-radius: 999px; border: 2px solid var(--cor); color: var(--cor); background: transparent; font-weight: 700; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--cor); color: var(--noite); }
+.placar-mem { display: flex; gap: 22px; font-variant-numeric: tabular-nums; color: var(--texto-suave); font-weight: 700; }
+.placar-mem b { color: var(--texto); font-size: 22px; font-family: var(--fonte-titulo); font-weight: 400; margin-left: 4px; }
+.tabuleiro { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; perspective: 1000px; }
+.mcarta { aspect-ratio: 4 / 3; background: none; border: 0; cursor: pointer; perspective: 800px; color: inherit; }
+.mcarta-dentro { display: block; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.3,1.3,.5,1); }
+.mcarta.aberta .mcarta-dentro, .mcarta.par .mcarta-dentro { transform: rotateY(180deg); }
+.mcarta .mf, .mcarta .mv { position: absolute; inset: 0; border-radius: 16px; backface-visibility: hidden; -webkit-backface-visibility: hidden; display: grid; place-items: center; }
+.mcarta .mf { background: repeating-linear-gradient(45deg, #17213a 0 10px, #1b2744 10px 20px); border: 1px solid var(--linha); }
+.mcarta .mf::after { content: ""; width: 34%; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(var(--es) 0 25%, var(--it) 0 50%, var(--la) 0 75%, var(--gn) 0); opacity: .85; }
+.mcarta .mv { transform: rotateY(180deg); background: var(--papel-2); color: var(--tinta); border: 2px solid transparent; padding: 8px; }
+.mcarta .mv img { max-height: 100%; mix-blend-mode: multiply; }
+.mcarta .mv b { font-family: var(--fonte-titulo); font-weight: 400; font-size: clamp(18px, 2.4vw, 28px); color: var(--cor); text-align: center; line-height: 1.1; }
+.mcarta.par .mv { border-color: var(--cor); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor) 30%, transparent); }
+.mcarta.erro .mcarta-dentro { animation: tremer .4s; }
+@keyframes tremer { 25% { transform: rotateY(180deg) translateX(-6px); } 75% { transform: rotateY(180deg) translateX(6px); } }
+.vitoria { margin-top: 20px; text-align: center; font-family: var(--fonte-titulo); font-size: 26px; min-height: 1.3em; }
+@media (max-width: 600px) { .tabuleiro { grid-template-columns: repeat(3, 1fr); gap: 10px; } }
+
+/* ---------- MONTE A FRASE ---------- */
+.frase-caixa { background: var(--papel-2); border: 1px solid var(--linha-papel); border-radius: 24px; padding: 30px; }
+.frase-dica { font-size: 15px; color: var(--tinta-suave); }
+.frase-dica b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 26px; color: var(--tinta); display: block; margin-top: 2px; }
+.resposta { min-height: 74px; margin-top: 20px; border: 2px dashed var(--linha-papel); border-radius: 16px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; transition: border-color .3s, background .3s; }
+.resposta.certo { border-style: solid; border-color: #2f9a5a; background: #e3f2e6; }
+.resposta.errado { border-color: #d24a2f; animation: tremer2 .4s; }
+@keyframes tremer2 { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.banco { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; min-height: 52px; }
+.palavra-chip { cursor: pointer; padding: 11px 16px; border-radius: 12px; border: 0; background: var(--tinta); color: var(--papel); font-family: var(--fonte-titulo); font-size: 20px; box-shadow: 0 4px 0 var(--cor); transition: transform .15s, box-shadow .15s; }
+.palavra-chip:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--cor); }
+.palavra-chip:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--cor); }
+.resposta .palavra-chip { background: var(--cor); color: var(--noite); box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.frase-acoes { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+.frase-acoes .grupo { display: flex; gap: 10px; flex-wrap: wrap; }
+.botao-tinta { cursor: pointer; border: 0; background: var(--tinta); color: var(--papel); border-radius: 999px; padding: 12px 20px; font-weight: 700; }
+.botao-linha { cursor: pointer; border: 2px solid var(--tinta); background: transparent; color: var(--tinta); border-radius: 999px; padding: 10px 18px; font-weight: 700; }
+.frase-status { font-weight: 700; color: var(--tinta-suave); }
+.papel .chip { color: var(--cor-escura, var(--cor)); border-color: var(--cor-escura, var(--cor)); }
+.papel .chip[aria-pressed="true"] { background: var(--cor-escura, var(--cor)); color: #fff; }
+
+/* ---------- PASSAPORTE (conquistas) ---------- */
+.passaporte-btn { position: fixed; left: 18px; bottom: 18px; z-index: 60; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid var(--linha); background: rgba(18,26,44,.92); backdrop-filter: blur(10px); color: var(--texto); border-radius: 999px; padding: 10px 16px 10px 12px; font-weight: 700; box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); }
+.passaporte-btn .selo { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-variant-numeric: tabular-nums; background: conic-gradient(var(--gn) calc(var(--p, 0) * 1%), var(--linha) 0); }
+.passaporte-btn .selo span { width: 22px; height: 22px; border-radius: 50%; background: var(--noite-2); display: grid; place-items: center; }
+.passaporte { position: fixed; inset: 0; z-index: 80; background: rgba(5,8,16,.75); backdrop-filter: blur(6px); display: none; place-items: center; padding: 20px; }
+.passaporte.aberto { display: grid; }
+.passaporte-livro { width: min(560px, 100%); background: #1d2a4d; border-radius: 22px; padding: 30px; box-shadow: 0 40px 80px rgba(0,0,0,.6); border: 1px solid #2c3d68; animation: abrir .5s cubic-bezier(.2,.8,.2,1); transform-origin: left center; }
+@keyframes abrir { from { transform: perspective(1000px) rotateY(-70deg); opacity: 0; } }
+.passaporte-livro h2 { font-size: 32px; }
+.passaporte-livro > p { color: var(--texto-suave); margin-top: 6px; font-size: 15px; }
+.carimbos-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
+.carimbo-c { aspect-ratio: 1; border-radius: 50%; border: 2px dashed #3a4d7d; display: grid; place-items: center; text-align: center; padding: 10px; color: #5a6c96; font-size: 12px; font-weight: 700; line-height: 1.25; }
+.carimbo-c b { display: block; font-family: var(--fonte-titulo); font-weight: 400; font-size: 17px; }
+.carimbo-c.ganho { border-style: solid; border-width: 3px; color: var(--cor); border-color: var(--cor); transform: rotate(var(--r, -6deg)); background: color-mix(in srgb, var(--cor) 10%, transparent); animation: carimbar .5s cubic-bezier(.3,1.6,.5,1); }
+@keyframes carimbar { from { transform: scale(1.8) rotate(0); opacity: 0; } }
+.passaporte-livro .fechar { margin-top: 24px; width: 100%; }
+.aviso { position: fixed; left: 50%; bottom: 84px; transform: translate(-50%, 30px); opacity: 0; z-index: 85; background: var(--texto); color: var(--noite); padding: 12px 20px; border-radius: 999px; font-weight: 700; box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); transition: transform .4s cubic-bezier(.2,1.4,.5,1), opacity .3s; pointer-events: none; white-space: nowrap; }
+.aviso.mostra { transform: translate(-50%, 0); opacity: 1; }
+#confete { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 95; }
+
+@media (prefers-reduced-motion: reduce) {
+  .folha, .livro, .cubo, .mcarta-dentro, .arvore { transition: none; }
+  .galho { animation: none; }
+  .passaporte-livro, .carimbo-c.ganho { animation: none; }
+}

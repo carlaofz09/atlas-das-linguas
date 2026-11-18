@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlas das Línguas</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="extra.css">
+<style>
+/* ============================================================
+   1. TOKENS DE DESIGN
+   Layout: duas "luzes". A noite (seções escuras com o globo 3D)
+   e o papel (seções claras com as ilustrações do livro).
+   ============================================================ */
+:root {
+  --noite: #0b1120;
+  --noite-2: #121a2c;
+  --linha: #243049;
+  --texto: #eef0f5;
+  --texto-suave: #9aa5bb;
+
+  --papel: #efe7d5;
+  --papel-2: #f8f3e7;
+  --tinta: #1d2433;
+  --tinta-suave: #5d6372;
+  --linha-papel: #d9ceb6;
+
+  --es: #ff6b4a;
+  --it: #3ccf7e;
+  --la: #b98cff;
+  --gn: #ffc23d;
+
+  --fonte-titulo: "Young Serif", Georgia, serif;
+  --fonte-texto: "Figtree", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--noite); color: var(--texto); font-family: var(--fonte-texto); font-size: 17px; line-height: 1.6; overflow-x: hidden; }
+h1, h2, h3 { font-family: var(--fonte-titulo); font-weight: 400; line-height: 1.08; text-wrap: balance; }
+img { max-width: 100%; display: block; }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--gn); outline-offset: 3px; border-radius: 6px; }
+.container { width: min(1180px, 100% - 40px); margin-inline: auto; }
+.rotulo { font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--texto-suave); }
+.papel .rotulo { color: var(--tinta-suave); }
+
+/* aparece de leve ao rolar (já visível desde o início) */
+.surge { transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+.surge.fora { transform: translateY(28px); }
+
+/* ============ 2. CABEÇALHO ============ */
+header { position: fixed; inset: 0 0 auto 0; z-index: 50; transition: background .3s, border-color .3s; border-bottom: 1px solid transparent; }
+header.rolado { background: color-mix(in srgb, var(--noite) 82%, transparent); backdrop-filter: blur(12px); border-color: var(--linha); }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 66px; gap: 16px; }
+.logo { font-family: var(--fonte-titulo); font-size: 20px; color: var(--texto); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.logo-pontos { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.logo-pontos span { width: 8px; height: 8px; border-radius: 50%; }
+.menu { display: flex; gap: 28px; list-style: none; }
+.menu a { color: var(--texto-suave); text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: .02em; }
+.menu a:hover { color: var(--texto); }
+@media (max-width: 800px) { .menu { display: none; } }
+
+/* ============ 3. JORNADA 3D (palco fixo + passos que rolam) ============ */
+.jornada { position: relative; }
+.palco { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
+  background: radial-gradient(ellipse at 58% 42%, #12305a 0%, #0a1430 35%, #060a16 75%); }
+/* linhas de TV/holograma por cima da cena */
+.palco::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: repeating-linear-gradient(0deg, rgba(61,242,255,.035) 0 1px, transparent 1px 3px); mix-blend-mode: screen; }
+/* painel estilo nave (HUD) */
+.hud { position: absolute; inset: 84px 22px 22px; pointer-events: none; z-index: 2; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #3df2ff; }
+.canto { position: absolute; width: 26px; height: 26px; border: 2px solid rgba(61,242,255,.6); }
+.c1 { left: 0; top: 0; border-right: 0; border-bottom: 0; } .c2 { right: 0; top: 0; border-left: 0; border-bottom: 0; }
+.c3 { left: 0; bottom: 0; border-right: 0; border-top: 0; } .c4 { right: 0; bottom: 0; border-left: 0; border-top: 0; }
+.hud-leitura { position: absolute; right: 40px; top: 14px; display: grid; justify-items: end; gap: 2px; font-size: 12px; letter-spacing: .14em; }
+.hud-leitura span:last-child { opacity: .65; font-size: 11px; }
+.hud-sinal { width: 10px; height: 10px; border-radius: 50%; background: var(--cor, #3df2ff); box-shadow: 0 0 12px var(--cor, #3df2ff); animation: piscar 1.2s steps(2) infinite; margin-bottom: 4px; }
+@keyframes piscar { 50% { opacity: .2; } }
+.hud-barra { position: absolute; right: 40px; bottom: 14px; display: flex; align-items: center; gap: 10px; font-size: 11px; letter-spacing: .14em; opacity: .75; }
+.hud-barra i { width: 90px; height: 4px; background: linear-gradient(90deg, #3df2ff 0 60%, rgba(61,242,255,.2) 60%); animation: carregar 3s linear infinite; background-size: 200% 100%; }
+@keyframes carregar { to { background-position: -200% 0; } }
+@media (max-width: 800px) { .hud { inset: 76px 10px 10px; } .hud-barra { display: none; } .hud-leitura { right: 30px; } }
+@media (prefers-reduced-motion: reduce) { .hud-sinal, .hud-barra i { animation: none; } }
+.palco canvas { width: 100%; height: 100%; display: block; }
+.etiqueta { position: absolute; left: 0; top: 0; transform: translate(-50%, -170%); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px; background: rgba(11,17,32,.7); border: 1px solid var(--cor); color: var(--cor); white-space: nowrap; pointer-events: none; }
+.progresso { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); display: grid; gap: 10px; z-index: 3; }
+.progresso button { width: 10px; height: 10px; border-radius: 50%; border: 0; background: var(--linha); cursor: pointer; transition: transform .3s, background .3s; }
+.progresso button.ativo { background: var(--cor, var(--texto)); transform: scale(1.6); }
+.rolar { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-suave); transition: opacity .4s; }
+
+.passos { position: relative; margin-top: -100vh; margin-top: -100svh; z-index: 2; pointer-events: none; }
+.passo { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding-block: 100px 60px; }
+.passo .painel { pointer-events: auto; max-width: 500px; }
+
+.abertura h1 { font-size: clamp(48px, 8vw, 104px); margin-block: 16px 22px; }
+.abertura h1 em { font-style: normal; background: linear-gradient(90deg, var(--es), var(--gn) 35%, var(--it) 65%, var(--la)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.abertura p { font-size: 19px; color: var(--texto-suave); max-width: 40ch; }
+.abertura .autor { margin-top: 22px; font-size: 14px; }
+.abertura .autor b { color: var(--texto); }
+
+.painel-idioma { background: rgba(18,26,44,.72); backdrop-filter: blur(14px); border: 1px solid var(--linha); border-radius: 22px; padding: 30px; border-top: 4px solid var(--cor); }
+.painel-idioma .num { font-family: var(--fonte-titulo); font-size: 15px; color: var(--cor); }
+.painel-idioma h2 { font-size: clamp(40px, 5.5vw, 64px); margin-top: 6px; }
+.painel-idioma .ola { font-family: var(--fonte-titulo); font-size: 24px; color: var(--cor); margin-top: 10px; }
+.painel-idioma p { color: var(--texto-suave); margin-top: 12px; }
+.fatos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.fatos span { font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: color-mix(in srgb, var(--cor) 16%, transparent); color: var(--cor); }
+
+@media (max-width: 800px) {
+  .passo { align-items: flex-end; padding-bottom: 40px; }
+  .abertura { align-items: center; }
+  .painel-idioma { padding: 22px; }
+  .progresso { right: 10px; }
+}
+
+/* ============ 4. SEÇÕES DE PAPEL (claras) ============ */
+.papel { background: var(--papel); color: var(--tinta); color-scheme: light; }
+.secao { padding-block: 110px; }
+.titulo-secao { display: flex; justify-content: space-between; align-items: end; gap: 30px; flex-wrap: wrap; margin-bottom: 40px; }
+.titulo-secao h2 { font-size: clamp(36px, 5vw, 60px); margin-top: 10px; max-width: 14ch; }
+.titulo-secao p { max-width: 42ch; color: var(--texto-suave); }
+.papel .titulo-secao p { color: var(--tinta-suave); }
+
+/* ============ 5. ARARA DE VOCABULÁRIO (carrossel 3D) ============ */
+.arara { position: relative; height: 360px; perspective: 1300px; perspective-origin: 50% 46px; touch-action: pan-y; user-select: none; }
+.barra { position: absolute; left: -20px; right: -20px; top: 40px; height: 8px; border-radius: 8px;
+  background: linear-gradient(#c9ccd3, #8d929c 60%, #6b707a); box-shadow: 0 3px 6px rgba(0,0,0,.18); z-index: 5; }
+.peca { position: absolute; left: 50%; top: 30px; width: 300px; margin-left: -150px; transform-style: preserve-3d;
+  transition: transform .7s cubic-bezier(.2,.75,.2,1), opacity .5s, filter .5s; cursor: pointer; }
+.balanco { transform-origin: 50% 0; }
+.balanco.vai { animation: balancar 1.4s ease-out; }
+@keyframes balancar { 0% { transform: rotate(var(--giro, 6deg)); } 25% { transform: rotate(calc(var(--giro, 6deg) * -.6)); } 50% { transform: rotate(calc(var(--giro, 6deg) * .35)); } 75% { transform: rotate(calc(var(--giro, 6deg) * -.15)); } 100% { transform: rotate(0); } }
+.gancho { display: block; margin: 0 auto; width: 34px; height: 46px; }
+.cartao-peca { background: var(--papel-2); border-radius: 18px; padding: 16px 16px 20px; box-shadow: 0 30px 40px -24px rgba(29,36,51,.45), 0 2px 0 rgba(255,255,255,.6) inset; border: 1px solid var(--linha-papel); margin-top: -6px; position: relative; }
+.cartao-peca img { width: 100%; aspect-ratio: 366 / 255; object-fit: contain; mix-blend-mode: multiply; pointer-events: none; }
+.tag { position: absolute; right: -10px; top: 26px; transform: rotate(8deg); background: var(--cor, var(--tinta)); color: #fff; font-weight: 800; font-size: 14px; padding: 6px 12px 6px 18px; border-radius: 4px 10px 10px 4px; box-shadow: 0 6px 12px -6px rgba(0,0,0,.4); transition: background .3s; }
+.tag::before { content: ""; position: absolute; left: 6px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: var(--papel-2); }
+
+.info-arara { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 24px; margin-top: 8px; border-top: 1px solid var(--linha-papel); padding-top: 28px; }
+.seta { width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--tinta); background: transparent; color: var(--tinta); cursor: pointer; font-size: 22px; transition: background .2s, color .2s; }
+.seta:hover { background: var(--tinta); color: var(--papel); }
+.centro-info { text-align: center; }
+.contador { font-size: 13px; font-weight: 800; letter-spacing: .14em; color: var(--tinta-suave); font-variant-numeric: tabular-nums; }
+.palavra-pt { font-family: var(--fonte-titulo); font-size: 22px; color: var(--tinta-suave); margin-top: 4px; }
+.palavra-grande { font-family: var(--fonte-titulo); font-size: clamp(44px, 7vw, 78px); line-height: 1.05; color: var(--cor); transition: color .3s; min-height: 1.05em; }
+.sem-traducao { font-size: 14px; color: var(--tinta-suave); min-height: 1.4em; margin-top: 4px; }
+.amostras { display: flex; justify-content: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
+.amostra { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: 0; cursor: pointer; color: var(--tinta-suave); font-size: 12px; font-weight: 700; }
+.amostra i { width: 34px; height: 34px; border-radius: 50%; background: var(--cor); box-shadow: 0 0 0 3px var(--papel), 0 0 0 4px var(--linha-papel); transition: box-shadow .2s; }
+.amostra[aria-pressed="true"] { color: var(--tinta); }
+.amostra[aria-pressed="true"] i { box-shadow: 0 0 0 3px var(--papel), 0 0 0 5px var(--tinta); }
+@media (max-width: 700px) {
+  .arara { height: 320px; }
+  .peca { width: 230px; margin-left: -115px; }
+  .info-arara { grid-template-columns: 1fr 1fr; }
+  .centro-info { grid-column: 1 / -1; grid-row: 1; }
+  .seta.prox { justify-self: end; }
+}
+
+/* ============ 6. MÓDULOS ============ */
+.abas { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
+.aba { cursor: pointer; padding: 10px 18px; border-radius: 999px; border: 2px solid var(--cor); color: var(--cor); background: transparent; font-weight: 700; }
+.aba[aria-selected="true"] { background: var(--cor); color: var(--noite); }
+.modulo { display: grid; grid-template-columns: .9fr 1.1fr; gap: 28px; align-items: start; }
+.quadro { border-radius: 22px; overflow: hidden; position: relative; background: var(--papel); aspect-ratio: 4 / 5; }
+.quadro img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+.quadro:hover img { transform: scale(1.04); }
+.quadro .legenda { position: absolute; left: 14px; bottom: 14px; background: rgba(11,17,32,.78); backdrop-filter: blur(6px); padding: 8px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+.lado h3 { font-size: clamp(36px, 4.5vw, 54px); color: var(--cor); }
+.lado > p { color: var(--texto-suave); margin-top: 12px; max-width: 58ch; }
+.temas { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.temas span { font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--linha); color: var(--texto-suave); }
+.lado h4 { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-suave); margin: 30px 0 12px; }
+
+/* cartões que viram em 3D */
+.cartas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.carta { perspective: 800px; height: 128px; background: none; border: 0; cursor: pointer; text-align: left; color: inherit; }
+.carta-dentro { display: block; position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,1.3,.5,1); }
+.carta.virada .carta-dentro { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; }
+.frente { background: var(--noite-2); border: 1px solid var(--linha); }
+.frente b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 21px; line-height: 1.15; }
+.frente small, .verso small { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
+.verso { background: var(--cor); color: var(--noite); transform: rotateY(180deg); }
+.verso b { font-size: 18px; line-height: 1.2; }
+.verso span { font-size: 14px; font-weight: 600; }
+.verso .ouvir { position: absolute; right: 12px; bottom: 12px; padding: 4px 10px; font-size: 12px; }
+.curios { list-style: none; display: grid; gap: 10px; }
+.curios li { padding-left: 20px; position: relative; color: var(--texto-suave); font-size: 15px; }
+.curios li::before { content: ""; position: absolute; left: 0; top: .55em; width: 9px; height: 9px; border-radius: 50%; background: var(--cor); }
+@media (max-width: 860px) { .modulo { grid-template-columns: 1fr; } .quadro { aspect-ratio: 16 / 11; } }
+
+/* ============ 7. NÚMEROS (slider) ============ */
+.numeros { display: grid; grid-template-columns: 1fr 1.3fr; gap: 40px; align-items: center; }
+.numero-gigante { font-family: var(--fonte-titulo); font-size: clamp(140px, 22vw, 260px); line-height: .85; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.romano { font-family: var(--fonte-titulo); font-size: 22px; color: var(--la); margin-top: 10px; filter: brightness(.75); }
+.slider { width: 100%; margin-top: 28px; accent-color: var(--tinta); height: 28px; cursor: pointer; }
+.linhas-num { display: grid; gap: 10px; }
+.linha-num { display: grid; grid-template-columns: 120px 1fr; align-items: baseline; gap: 16px; padding: 16px 20px; background: var(--papel-2); border: 1px solid var(--linha-papel); border-left: 5px solid var(--cor); border-radius: 14px; }
+.linha-num span { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-suave); }
+.linha-num b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 30px; line-height: 1.1; color: var(--tinta); }
+.linha-num b.vazio { font-family: var(--fonte-texto); font-size: 15px; color: var(--tinta-suave); }
+@media (max-width: 860px) { .numeros { grid-template-columns: 1fr; } .linha-num { grid-template-columns: 90px 1fr; } .linha-num b { font-size: 24px; } }
+
+/* ============ 8. COMPARAR ============ */
+.tabela-caixa { overflow-x: auto; border-radius: 18px; border: 1px solid var(--linha); background: var(--noite-2); }
+.comparar { width: 100%; border-collapse: collapse; min-width: 680px; }
+.comparar th, .comparar td { padding: 15px 20px; text-align: left; border-bottom: 1px solid var(--linha); }
+.comparar th { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+.comparar td { font-family: var(--fonte-titulo); font-size: 18px; }
+.comparar td:first-child { font-family: var(--fonte-texto); font-weight: 700; font-size: 15px; color: var(--texto-suave); }
+.comparar tbody tr:last-child td { border-bottom: 0; }
+.comparar tbody tr:hover { background: rgba(255,255,255,.03); }
+.c-es { color: var(--es); } .c-it { color: var(--it); } .c-la { color: var(--la); } .c-gn { color: var(--gn); }
+
+/* ============ 9. DESAFIO ============ */
+.quiz { display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: center; background: var(--noite-2); border: 1px solid var(--linha); border-radius: 26px; padding: 36px; }
+.quiz-img { background: var(--papel-2); border-radius: 18px; padding: 18px; }
+.quiz-img img { width: 100%; aspect-ratio: 366/255; object-fit: contain; mix-blend-mode: multiply; }
+.quiz h2 { font-size: clamp(30px, 4vw, 44px); }
+.quiz .pergunta { font-size: 18px; margin-block: 14px 18px; color: var(--texto-suave); }
+.quiz .pergunta b { font-family: var(--fonte-titulo); font-weight: 400; font-size: 34px; color: var(--texto); }
+.opcoes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.opcao { cursor: pointer; padding: 14px; border-radius: 12px; border: 2px solid var(--cor); background: transparent; color: var(--cor); font-weight: 700; }
+.opcao:hover:not(:disabled) { background: color-mix(in srgb, var(--cor) 14%, transparent); }
+.opcao.certa { background: var(--cor); color: var(--noite); }
+.opcao.errada { opacity: .45; text-decoration: line-through; }
+.quiz-rodape { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+.barra-quiz { flex: 1; min-width: 140px; height: 6px; border-radius: 6px; background: var(--linha); overflow: hidden; }
+.barra-quiz i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--es), var(--gn), var(--it), var(--la)); transition: width .4s; }
+.placar { font-variant-numeric: tabular-nums; color: var(--texto-suave); font-size: 15px; }
+.proxima { cursor: pointer; padding: 11px 20px; border-radius: 999px; border: 0; background: var(--texto); color: var(--noite); font-weight: 700; }
+@media (max-width: 860px) { .quiz { grid-template-columns: 1fr; padding: 24px; } .quiz-img { max-width: 280px; } }
+
+/* ============ 10. NOTA + RODAPÉ ============ */
+.precisao { display: grid; grid-template-columns: auto 1fr; gap: 22px; border: 1px dashed var(--gn); border-radius: 20px; padding: 26px; margin-top: 60px; }
+.precisao .marca { font-family: var(--fonte-titulo); font-size: 52px; color: var(--gn); line-height: .8; }
+.precisao h3 { font-size: 22px; }
+.precisao p { color: var(--texto-suave); margin-top: 6px; }
+footer { border-top: 1px solid var(--linha); padding-block: 34px; color: var(--texto-suave); font-size: 14px; }
+footer .container { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .surge, .peca, .carta-dentro, .quadro img { transition: none; }
+  .surge.fora { transform: none; }
+  .balanco.vai { animation: none; }
+}
+</style>
+<link rel="stylesheet" href="tema.css">
+</head>
+
+<body>
+
+<header id="topo">
+  <nav class="container nav" aria-label="Principal">
+    <a class="logo" href="#inicio">
+      <span class="logo-pontos" aria-hidden="true">
+        <span style="background:var(--es)"></span><span style="background:var(--it)"></span>
+        <span style="background:var(--la)"></span><span style="background:var(--gn)"></span>
+      </span>
+      Atlas das Línguas
+    </a>
+    <ul class="menu">
+      <li><a href="#jornada-es">Jornada</a></li>
+      <li><a href="#arara">Vocabulário</a></li>
+      <li><a href="#livro-secao">Livro</a></li>
+      <li><a href="#alfabeto">Alfabeto</a></li>
+      <li><a href="#memoria">Jogos</a></li>
+      <li><a href="#desafio">Desafio</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="inicio">
+
+  <!-- ===================== JORNADA 3D ===================== -->
+  <section class="jornada" id="jornada">
+    <div class="palco" id="palco">
+      <canvas id="cena" aria-label="Globo 3D com quatro luas, uma para cada idioma. A câmera viaja até cada uma conforme você rola a página."></canvas>
+      <div id="etiquetas"></div>
+      <div class="hud" aria-hidden="true">
+        <span class="canto c1"></span><span class="canto c2"></span><span class="canto c3"></span><span class="canto c4"></span>
+        <div class="hud-leitura"><i class="hud-sinal" id="hud-sinal"></i><span id="hud-lugar">VARREDURA GLOBAL</span><span id="hud-coord">4 IDIOMAS · 4 ORIGENS</span></div>
+        <div class="hud-barra"><span>ATLAS-01</span><i></i><span>SINAL ESTÁVEL</span></div>
+      </div>
+      <nav class="progresso" id="progresso" aria-label="Etapas da jornada"></nav>
+      <span class="rolar" id="rolar">Role para começar a viagem ↓</span>
+    </div>
+
+    <div class="passos" id="passos">
+      <div class="passo abertura">
+        <div class="container">
+          <div class="painel surge">
+            <p class="rotulo">Missão Global IA · Caderno didático ilustrado</p>
+            <h1>Uma jornada por <em>quatro idiomas</em></h1>
+            <p>Espanhol, italiano, latim e guarani paraguaio. Role a página e a câmera viaja até cada um deles.</p>
+            <p class="autor">Por <b>Carlos Henrique</b> · 2026</p>
+          </div>
+        </div>
+      </div>
+      <!-- os quatro passos dos idiomas são criados pelo JavaScript -->
+    </div>
+  </section>
+
+  <!-- ===================== FAIXA DE PALAVRAS ===================== -->
+  <div class="fita" id="fita" aria-label="Palavras dos quatro idiomas. Toque para ouvir."></div>
+
+  <!-- ===================== ARARA ===================== -->
+  <section class="papel secao" id="arara">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Vitrine do vocabulário</p>
+          <h2>Pendure uma palavra, troque o idioma</h2>
+        </div>
+        <p>As ilustrações do livro, penduradas numa arara. Arraste para o lado e escolha uma cor para ver a mesma palavra em outro idioma.</p>
+      </div>
+
+      <div class="arara" id="arara-palco" tabindex="0" aria-roledescription="carrossel" aria-label="Arara de vocabulário. Use as setas do teclado.">
+        <div class="barra" aria-hidden="true"></div>
+      </div>
+
+      <div class="info-arara">
+        <button class="seta ant" id="seta-ant" type="button" aria-label="Palavra anterior">←</button>
+        <div class="centro-info" aria-live="polite">
+          <p class="contador" id="contador">01 / 11</p>
+          <p class="palavra-pt" id="palavra-pt">gato</p>
+          <p class="palavra-grande" id="palavra-grande">gato</p>
+          <p class="sem-traducao" id="sem-traducao"></p>
+          <div id="ouvir-arara"></div>
+          <div class="amostras" id="amostras"></div>
+        </div>
+        <button class="seta prox" id="seta-prox" type="button" aria-label="Próxima palavra">→</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===================== LIVRO 3D ===================== -->
+  <section class="secao" id="livro-secao">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">O livro de verdade</p>
+          <h2>Folheie o Atlas em 3D</h2>
+        </div>
+        <p>Doze páginas reais do caderno. Toque numa página ou arraste para o lado para virar, e use “Ampliar” para ler de perto.</p>
+      </div>
+      <div class="livro-palco" id="livro-palco" tabindex="0" aria-label="Livro 3D. Use as setas do teclado para virar as páginas.">
+        <div class="livro" id="livro"></div>
+      </div>
+      <div class="livro-controles">
+        <button class="botao-claro" id="livro-ant" type="button">← Voltar</button>
+        <span class="contador-livro" id="contador-livro" aria-live="polite">Capa</span>
+        <button class="botao-claro" id="livro-prox" type="button">Virar →</button>
+        <button class="botao-claro" id="livro-zoom" type="button">Ampliar página</button>
+      </div>
+    </div>
+    <div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Página ampliada">
+      <img id="zoom-img" src="" alt="">
+      <button class="botao-claro" id="zoom-fechar" type="button">Fechar</button>
+    </div>
+  </section>
+
+  <!-- ===================== MÓDULOS ===================== -->
+  <section class="secao" id="modulos">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Os módulos</p>
+          <h2>Conheça, leia e pratique</h2>
+        </div>
+        <p>Cada módulo tem seis temas. Toque nos cartões de expressão para virá-los e ver a tradução.</p>
+      </div>
+      <div class="abas" role="tablist" id="abas"></div>
+      <div class="modulo" id="modulo"></div>
+    </div>
+  </section>
+
+  <!-- ===================== NÚMEROS ===================== -->
+  <section class="papel secao" id="numeros">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Números de 0 a 20</p>
+          <h2>Conte nos quatro idiomas</h2>
+        </div>
+        <p>Arraste o controle. Repare que o latim não tem zero, e que o guarani forma 15 juntando 10 (pa) e 5 (po).</p>
+      </div>
+      <div class="numeros">
+        <div>
+          <div class="numero-gigante" id="num-gigante">7</div>
+          <p class="romano" id="romano">Em algarismo romano: VII</p>
+          <label class="rotulo" for="slider" style="display:block;margin-top:24px">Escolha um número</label>
+          <input class="slider" id="slider" type="range" min="0" max="20" value="7">
+        </div>
+        <div class="linhas-num" id="linhas-num"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===================== CUBOS DO ALFABETO ===================== -->
+  <section class="secao" id="alfabeto">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Alfabeto espanhol · 27 letras</p>
+          <h2>Gire os cubos das letras</h2>
+        </div>
+        <p>Cada cubo tem quatro faces: a letra, uma palavra, a tradução e o nome da letra. Toque para girar. Ao chegar na palavra, o site fala a pronúncia.</p>
+      </div>
+      <div class="cubos-barra">
+        <div class="legenda-cubo">
+          <span style="--c:var(--es)">letra</span><span style="--c:#ff8a6e">palavra</span><span style="--c:var(--noite-2);">tradução</span><span style="--c:#2a1c1a">nome</span>
+        </div>
+        <button class="botao-claro" id="onda-cubos" type="button">Girar todos em onda</button>
+      </div>
+      <div class="cubos" id="cubos"></div>
+    </div>
+  </section>
+
+  <!-- ===================== ÁRVORE ===================== -->
+  <section class="papel secao" id="arvore-secao">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">De onde vêm as línguas</p>
+          <h2>A árvore das línguas</h2>
+        </div>
+        <p>Três idiomas do livro são primos do português. O guarani vem de outra família. Toque numa caixa para saber mais.</p>
+      </div>
+      <div class="arvore-palco">
+        <div class="arvore" id="arvore">
+          <div style="overflow-x:auto"><svg id="arvore-svg" viewBox="0 0 1000 420" style="min-width:640px" role="group" aria-label="Árvore das línguas"></svg></div>
+          <div class="arvore-info" id="arvore-info" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MEMÓRIA ===================== -->
+  <section class="secao" id="memoria">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Jogo da memória</p>
+          <h2>Ache o par: desenho e palavra</h2>
+        </div>
+        <p>Vire duas cartas por vez. Cada ilustração tem um par com o nome dela no idioma escolhido.</p>
+      </div>
+      <div class="memoria-topo">
+        <div class="chips" id="chips-mem" aria-label="Idioma do jogo"></div>
+        <div class="placar-mem">
+          <span>Jogadas<b id="mem-jogadas">0</b></span>
+          <span>Pares<b id="mem-pares">0/6</b></span>
+          <span>Tempo<b id="mem-tempo">0s</b></span>
+        </div>
+        <button class="botao-claro" id="mem-novo" type="button">Embaralhar de novo</button>
+      </div>
+      <div class="tabuleiro" id="tabuleiro"></div>
+      <p class="vitoria" id="vitoria" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <!-- ===================== MONTE A FRASE ===================== -->
+  <section class="papel secao" id="frase">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Monte a frase</p>
+          <h2>Coloque as palavras na ordem</h2>
+        </div>
+        <p>Frases tiradas dos módulos do livro. Toque nas palavras para montar a frase e confira.</p>
+      </div>
+      <div class="frase-caixa" id="frase-caixa">
+        <div class="chips" id="chips-frase" aria-label="Idioma da frase" style="margin-bottom:22px"></div>
+        <p class="frase-dica">Como se diz…<b id="frase-trad"></b></p>
+        <div class="resposta" id="resposta" aria-label="Sua frase"></div>
+        <div class="banco" id="banco" aria-label="Palavras disponíveis"></div>
+        <div class="frase-acoes">
+          <span class="frase-status" id="frase-status" aria-live="polite"></span>
+          <div class="grupo">
+            <span id="frase-ouvir"></span>
+            <button class="botao-linha" id="frase-proxima" type="button">Outra frase</button>
+            <button class="botao-tinta" id="frase-conferir" type="button">Conferir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COMPARAR + DESAFIO ===================== -->
+  <section class="secao" id="desafio">
+    <div class="container">
+      <div class="titulo-secao surge">
+        <div>
+          <p class="rotulo">Compare</p>
+          <h2>A mesma ideia, quatro idiomas</h2>
+        </div>
+        <p>Espanhol e italiano vieram do latim falado. O guarani pertence a outra família, nascida na América do Sul.</p>
+      </div>
+      <div class="tabela-caixa surge">
+        <table class="comparar">
+          <thead><tr><th>Português</th><th class="c-es">Espanhol</th><th class="c-it">Italiano</th><th class="c-la">Latim</th><th class="c-gn">Guarani</th></tr></thead>
+          <tbody id="tabela"></tbody>
+        </table>
+      </div>
+
+      <div class="quiz surge" style="margin-top:60px">
+        <div class="quiz-img"><img id="quiz-img" src="img/gato.webp" alt=""></div>
+        <div>
+          <p class="rotulo">Desafio</p>
+          <h2>De que idioma é esta palavra?</h2>
+          <p class="pergunta">A palavra é <b id="palavra-quiz">…</b></p>
+          <div class="opcoes" id="opcoes"></div>
+          <div class="quiz-rodape">
+            <span class="placar" id="placar">0 de 0</span>
+            <div class="barra-quiz" aria-hidden="true"><i id="barra-quiz"></i></div>
+            <button class="proxima" id="proxima" type="button">Próxima</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="precisao">
+        <span class="marca" aria-hidden="true">’</span>
+        <div>
+          <h3>Nota de precisão</h3>
+          <p>“Tupi-guarani” é uma família de línguas. O módulo apresenta o guarani paraguaio contemporâneo, também chamado avañe’ẽ. Quando o livro não traz uma tradução para o guarani, o site também não inventa uma.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <span>Atlas das Línguas · Carlos Henrique · 2026</span>
+    <span>Projeto Missão Global IA · ilustrações do livro</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="cena.js"></script>
+<script>
+/* ============================================================
+   11. DADOS (do livro Atlas das Línguas)
+   ============================================================ */
+const idiomas = [
+  { id: "es", nome: "Espanhol", cor: "#ff6b4a", ola: "¡Hola! ¿Cómo estás?", lat: 40.4, lon: -3.7, lugar: "Madri",
+    resumo: "Nasceu do latim falado na Península Ibérica e chegou às Américas com a expansão colonial.",
+    fatos: ["27 letras", "Ñ é letra própria", "¿ abre perguntas"],
+    intro: "O espanhol se desenvolveu a partir do latim falado na Península Ibérica. A expansão colonial levou a língua às Américas, e hoje há variedades em diferentes continentes. Neste módulo, z e c antes de e/i têm som de s (seseo).",
+    temas: ["Cultura", "Alfabeto", "Números", "Vocabulário", "Expressões", "Curiosidades"],
+    cena: "img/cena-es.webp", legenda: "Ilustração de abertura do módulo",
+    expressoes: [["Hola", "ô-la", "Olá"], ["Buenos días", "buê-nos dí-as", "Bom dia"], ["¿Cómo estás?", "kô-mo es-táss", "Como você está?"], ["Gracias", "grá-sias", "Obrigado(a)"], ["No entiendo", "no en-tiên-do", "Não entendo"], ["Hasta luego", "ás-ta luê-go", "Até logo"]],
+    curiosidades: ["Ñ diferencia ano de año.", "Embarazada significa grávida, e não envergonhada.", "Espanhol e castelhano são nomes da mesma língua."],
+    palavras3d: ["hola", "gracias", "libro", "sol", "amigo", "casa"] },
+  { id: "la", nome: "Latim", cor: "#b98cff", ola: "Salve! Quid agis?", lat: 41.9, lon: 12.5, lugar: "Lácio",
+    resumo: "Surgiu no Lácio e é a raiz do português, do espanhol e do italiano.",
+    fatos: ["Sem algarismo zero", "Casos gramaticais", "Raiz das românicas"],
+    intro: "O latim surgiu no Lácio, na Itália antiga, e acompanhou a expansão romana. As línguas românicas nasceram do latim falado. Depois da Antiguidade, ele continuou presente na religião, na ciência, no ensino e no direito.",
+    temas: ["Cultura", "Alfabeto", "Números", "Vocabulário", "Expressões", "Curiosidades"],
+    cena: "img/cena-la.webp", legenda: "Ilustração de abertura do módulo",
+    expressoes: [["Salve!", "sál-we", "Olá! (a uma pessoa)"], ["Salvete!", "sal-wé-te", "Olá! (a várias)"], ["Quid agis?", "kuid á-gis", "Como vai?"], ["Bene valeo", "bé-ne wá-le-o", "Estou bem"], ["Gratias tibi ago", "grá-ti-as tí-bi á-go", "Agradeço a você"], ["Vale!", "wá-le", "Adeus!"]],
+    curiosidades: ["O sistema romano não tem algarismo para o zero.", "A ordem das palavras é flexível, mas não aleatória.", "J e U separados vieram depois da época clássica."],
+    palavras3d: ["salve", "aqua", "liber", "feles", "vale", "equus"] },
+  { id: "it", nome: "Italiano", cor: "#3ccf7e", ola: "Ciao! Come stai?", lat: 43.8, lon: 11.2, lugar: "Toscana",
+    resumo: "Consolidou-se com forte influência do dialeto toscano, a língua de Dante Alighieri.",
+    fatos: ["21 letras", "Consoantes duplas", "Base toscana"],
+    intro: "O italiano padrão se consolidou com forte influência do dialeto toscano. É língua oficial na Itália e em San Marino, e tem uso oficial na Suíça e no Vaticano. A pronúncia diferencia consoantes simples e duplas.",
+    temas: ["Cultura", "Alfabeto", "Números", "Vocabulário", "Expressões", "Curiosidades"],
+    cena: "img/cena-it.webp", legenda: "Ilustração do livro",
+    expressoes: [["Ciao!", "tchá-o", "Olá / Tchau"], ["Buongiorno!", "buon-djór-no", "Bom dia"], ["Come stai?", "kô-me stái", "Como você está?"], ["Grazie!", "grát-tsie", "Obrigado(a)"], ["Quanto costa?", "kuân-to kós-ta", "Quanto custa?"], ["Arrivederci!", "ar-ri-ve-dér-tchi", "Até logo"]],
+    curiosidades: ["Pala e palla têm sentidos diferentes.", "J, K, W, X e Y aparecem quase só em empréstimos.", "Culinária, ópera e cinema espalharam palavras italianas."],
+    palavras3d: ["ciao", "grazie", "gatto", "sole", "amico", "pane"] },
+  { id: "gn", nome: "Guarani", cor: "#ffc23d", ola: "Mba’éichapa?", lat: -25.3, lon: -57.6, lugar: "Paraguai",
+    resumo: "Língua indígena viva, oficial no Paraguai ao lado do espanhol.",
+    fatos: ["Vogais nasais", "Puso ( ’ )", "Família tupi-guarani"],
+    intro: "O guarani é uma língua indígena viva, oficial no Paraguai ao lado do espanhol. Está presente em famílias, escolas, música, literatura e meios de comunicação. Pertence à família tupi-guarani, que inclui várias outras línguas.",
+    temas: ["Cultura", "Escrita e sons", "Números", "Vocabulário", "Expressões", "Cultura e revisão"],
+    cena: "img/cena-gn.webp", legenda: "guyra · pássaro",
+    expressoes: [["Mba’éichapa?", "", "Como vai?"], ["Maitei.", "", "Saudação"], ["Iporã.", "", "Está bem / é bom"], ["Aguyje.", "", "Obrigado(a)"], ["Heẽ.", "", "Sim"], ["Jajotopata.", "", "Até nos encontrarmos"]],
+    curiosidades: ["O til marca vogais nasais: ã, ẽ, ĩ, õ, ũ, ỹ.", "O puso (’) é uma interrupção glotal.", "y significa água e óga significa casa."],
+    palavras3d: ["y", "kuarahy", "jasy", "óga", "aguyje", "porã"] }
+];
+const porId = id => idiomas.find(i => i.id === id);
+
+// arara: imagem + palavra em cada idioma (null = o livro não traz)
+const vocab = [
+  { img: "gato", pt: "gato", es: "gato", it: "gatto", la: "feles", gn: "mbarakaja" },
+  { img: "cachorro", pt: "cachorro", es: "perro", it: "cane", la: "canis", gn: "jagua" },
+  { img: "passaro", pt: "pássaro", es: "pájaro", it: "uccello", la: "avis", gn: "guyra" },
+  { img: "peixe", pt: "peixe", es: "pez", it: "pesce", la: "piscis", gn: "pira" },
+  { img: "livro", pt: "livro", es: "libro", it: "libro", la: "liber", gn: "aranduka" },
+  { img: "cadeira", pt: "cadeira", es: "silla", it: "sedia", la: "sella", gn: "apyka" },
+  { img: "cavalo", pt: "cavalo", es: "caballo", it: "cavallo", la: "equus", gn: null },
+  { img: "mesa", pt: "mesa", es: "mesa", it: "tavolo", la: "mensa", gn: null },
+  { img: "chave", pt: "chave", es: "llave", it: "chiave", la: "clavis", gn: null },
+  { img: "maca", pt: "maçã", es: "manzana", it: "mela", la: "malum", gn: null },
+  { img: "uva", pt: "uva", es: "uva", it: "uva", la: "uva", gn: null }
+];
+
+const numeros = {
+  es: ["cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez","once","doce","trece","catorce","quince","dieciséis","diecisiete","dieciocho","diecinueve","veinte"],
+  it: ["zero","uno","due","tre","quattro","cinque","sei","sette","otto","nove","dieci","undici","dodici","tredici","quattordici","quindici","sedici","diciassette","diciotto","diciannove","venti"],
+  la: [null,"unus","duo","tres","quattuor","quinque","sex","septem","octo","novem","decem","undecim","duodecim","tredecim","quattuordecim","quindecim","sedecim","septendecim","duodeviginti","undeviginti","viginti"],
+  gn: [null,"peteĩ","mokõi","mbohapy","irundy","po","poteĩ","pokõi","poapy","porundy","pa","pateĩ","pakõi","paapy","parundy","papo","papoteĩ","papokõi","papoapy","paporundy","mokõipa"]
+};
+
+const comparacoes = [
+  ["Olá", "hola", "ciao", "salve", "maitei"],
+  ["Obrigado(a)", "gracias", "grazie", "gratias tibi ago", "aguyje"],
+  ["Água", "agua", "acqua", "aqua", "y"],
+  ["Gato", "gato", "gatto", "feles", "mbarakaja"],
+  ["Livro", "libro", "libro", "liber", "aranduka"],
+  ["Amarelo", "amarillo", "giallo", "flavus", "sa’yju"],
+  ["Branco", "blanco", "bianco", "albus", "morotĩ"]
+];
+
+/* ============================================================
+   12. JORNADA: cria os passos e controla qual está ativo
+   ============================================================ */
+const passos = document.getElementById("passos");
+idiomas.forEach((l, i) => {
+  passos.insertAdjacentHTML("beforeend", `
+    <div class="passo" id="jornada-${l.id}">
+      <div class="container">
+        <div class="painel painel-idioma surge" style="--cor:${l.cor}">
+          <p class="num">0${i + 1} · ${l.lugar}</p>
+          <h2>${l.nome}</h2>
+          <p class="ola">${l.ola}</p>
+          <p>${l.resumo}</p>
+          <div class="fatos">${l.fatos.map(f => `<span>${f}</span>`).join("")}</div>
+        </div>
+      </div>
+    </div>`);
+});
+
+const elPassos = [...document.querySelectorAll(".passo")];
+const progresso = document.getElementById("progresso");
+elPassos.forEach((p, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.setAttribute("aria-label", i === 0 ? "Início" : idiomas[i - 1].nome);
+  if (i > 0) b.style.setProperty("--cor", idiomas[i - 1].cor);
+  b.addEventListener("click", () => p.scrollIntoView({ behavior: "smooth" }));
+  progresso.appendChild(b);
+});
+
+let passoAtivo = 0;
+function verPasso() {
+  const meio = innerHeight / 2;
+  let melhor = 0, dist = Infinity;
+  elPassos.forEach((p, i) => {
+    const r = p.getBoundingClientRect();
+    const d = Math.abs(r.top + r.height / 2 - meio);
+    if (d < dist) { dist = d; melhor = i; }
+  });
+  if (melhor !== passoAtivo) { passoAtivo = melhor; if (window.cena3d) cena3d.irPara(passoAtivo); if (window.aoPasso) aoPasso(passoAtivo); }
+  [...progresso.children].forEach((b, i) => b.classList.toggle("ativo", i === passoAtivo));
+  document.getElementById("rolar").style.opacity = scrollY > 80 ? 0 : 1;
+  document.getElementById("topo").classList.toggle("rolado", scrollY > 40);
+}
+addEventListener("scroll", verPasso, { passive: true });
+
+/* ============================================================
+   13. ARARA (carrossel 3D de cabides)
+   ============================================================ */
+const araraPalco = document.getElementById("arara-palco");
+let pecaAtual = 0, idiomaArara = "es";
+const ganchoSVG = `<svg class="gancho" viewBox="0 0 34 46" aria-hidden="true"><path d="M17 44V26c0-4 6-5 9-9 4-5 1-13-7-13-5 0-9 3-9 8" fill="none" stroke="#7d828c" stroke-width="3" stroke-linecap="round"/></svg>`;
+
+const pecas = vocab.map((v, i) => {
+  const el = document.createElement("div");
+  el.className = "peca";
+  el.innerHTML = `${ganchoSVG}<div class="balanco"><div class="cartao-peca"><img src="img/${v.img}.webp" alt="${v.pt}" draggable="false"><span class="tag"></span></div></div>`;
+  el.addEventListener("click", () => { if (!arrastou) irPeca(i); });
+  araraPalco.appendChild(el);
+  return el;
+});
+
+function desenharArara(balancar) {
+  const larg = araraPalco.clientWidth < 600 ? 170 : 260;
+  pecas.forEach((el, i) => {
+    let d = i - pecaAtual;                       // distância circular: a arara não tem fim
+    if (d > vocab.length / 2) d -= vocab.length;
+    if (d < -vocab.length / 2) d += vocab.length;
+    const a = Math.abs(d);
+    el.style.transform = `translateX(${d * larg}px) translateZ(${-a * 160}px) rotateY(${d * -32}deg)`;
+    el.style.opacity = a > 3 ? 0 : 1 - a * 0.18;
+    el.style.filter = a ? `saturate(${1 - a * .25}) blur(${a > 1 ? 1 : 0}px)` : "none";
+    el.style.zIndex = 10 - a;
+    el.style.pointerEvents = a > 3 ? "none" : "auto";
+    if (balancar && a <= 2) {
+      const b = el.querySelector(".balanco");
+      b.style.setProperty("--giro", `${(balancar > 0 ? -1 : 1) * (7 - a * 2)}deg`);
+      b.classList.remove("vai"); void b.offsetWidth; b.classList.add("vai");
+    }
+  });
+  atualizarInfoArara();
+}
+
+function atualizarInfoArara() {
+  const v = vocab[pecaAtual], l = porId(idiomaArara);
+  const palavra = v[idiomaArara];
+  document.getElementById("contador").textContent = `${String(pecaAtual + 1).padStart(2, "0")} / ${vocab.length}`;
+  document.getElementById("palavra-pt").textContent = v.pt;
+  const grande = document.getElementById("palavra-grande");
+  grande.textContent = palavra || "—";
+  grande.style.setProperty("--cor", l.cor);
+  document.getElementById("sem-traducao").textContent = palavra ? "" : "O livro não traz esta palavra em guarani.";
+  const ouvirA = document.getElementById("ouvir-arara");
+  if (ouvirA) ouvirA.innerHTML = palavra && window.botaoOuvir ? botaoOuvir(palavra, idiomaArara, "ouvir-arara") : "";
+  if (window.aoArara) aoArara(pecaAtual);
+  pecas.forEach((el, i) => {
+    const t = el.querySelector(".tag");
+    t.textContent = vocab[i][idiomaArara] || "—";
+    t.style.setProperty("--cor", l.cor === "#ffc23d" ? "#c48a00" : l.cor === "#3ccf7e" ? "#1f9a57" : l.cor === "#ff6b4a" ? "#d9452a" : "#8a5bd6");
+  });
+  document.querySelectorAll(".amostra").forEach(a => a.setAttribute("aria-pressed", a.dataset.id === idiomaArara));
+}
+
+function irPeca(i) {
+  const novo = (i + vocab.length) % vocab.length;
+  if (novo === pecaAtual) return;
+  let dir = novo - pecaAtual;
+  if (dir > vocab.length / 2) dir -= vocab.length;
+  if (dir < -vocab.length / 2) dir += vocab.length;
+  pecaAtual = novo;
+  desenharArara(dir);
+}
+
+const amostras = document.getElementById("amostras");
+idiomas.forEach(l => {
+  amostras.insertAdjacentHTML("beforeend", `<button class="amostra" type="button" data-id="${l.id}" style="--cor:${l.cor}"><i></i>${l.nome}</button>`);
+});
+amostras.addEventListener("click", e => {
+  const b = e.target.closest(".amostra"); if (!b) return;
+  idiomaArara = b.dataset.id;
+  desenharArara(1);
+});
+document.getElementById("seta-ant").addEventListener("click", () => irPeca(pecaAtual - 1));
+document.getElementById("seta-prox").addEventListener("click", () => irPeca(pecaAtual + 1));
+araraPalco.addEventListener("keydown", e => {
+  if (e.key === "ArrowRight") irPeca(pecaAtual + 1);
+  if (e.key === "ArrowLeft") irPeca(pecaAtual - 1);
+});
+
+// arrastar com o dedo ou mouse
+let inicioX = null, arrastou = false;
+araraPalco.addEventListener("pointerdown", e => { inicioX = e.clientX; arrastou = false; });
+addEventListener("pointerup", e => {
+  if (inicioX === null) return;
+  const dx = e.clientX - inicioX;
+  if (Math.abs(dx) > 40) { arrastou = true; irPeca(pecaAtual + (dx < 0 ? 1 : -1)); }
+  inicioX = null;
+  setTimeout(() => arrastou = false, 0);
+});
+addEventListener("resize", () => desenharArara(0));
+desenharArara(0);
+
+/* ============================================================
+   14. MÓDULOS com cartões que viram
+   ============================================================ */
+const abas = document.getElementById("abas");
+idiomas.forEach(l => {
+  abas.insertAdjacentHTML("beforeend", `<button class="aba" role="tab" type="button" data-id="${l.id}" style="--cor:${l.cor}">${l.nome}</button>`);
+});
+abas.addEventListener("click", e => { const b = e.target.closest(".aba"); if (b) mostrarModulo(b.dataset.id); });
+
+function mostrarModulo(id) {
+  const l = porId(id), n = idiomas.indexOf(l) + 1;
+  abas.querySelectorAll(".aba").forEach(b => b.setAttribute("aria-selected", b.dataset.id === id));
+  const m = document.getElementById("modulo");
+  m.style.setProperty("--cor", l.cor);
+  m.innerHTML = `
+    <figure class="quadro"><img src="${l.cena}" alt="Ilustração do módulo de ${l.nome}"><figcaption class="legenda">${l.legenda}</figcaption></figure>
+    <div class="lado">
+      <p class="rotulo">Módulo 0${n}</p>
+      <h3>${l.nome}</h3>
+      <p>${l.intro}</p>
+      <div class="temas">${l.temas.map((t, i) => `<span>${i + 1} · ${t}</span>`).join("")}</div>
+      <h4>Expressões · toque para virar</h4>
+      <div class="cartas">${l.expressoes.map(([fr, pr, tr]) => `
+        <div class="carta" role="button" tabindex="0" aria-label="${fr}: ver tradução">
+          <span class="carta-dentro">
+            <span class="face frente"><small>${l.nome}</small><b>${fr}</b></span>
+            <span class="face verso"><small>Tradução</small><b>${tr}</b><span>${pr || "pratique com falantes"}</span>${window.botaoOuvir ? botaoOuvir(fr, l.id) : ""}</span>
+          </span>
+        </div>`).join("")}</div>
+      <h4>Curiosidades</h4>
+      <ul class="curios">${l.curiosidades.map(c => `<li>${c}</li>`).join("")}</ul>
+    </div>`;
+  m.querySelectorAll(".carta").forEach(c => {
+    c.addEventListener("click", () => c.classList.toggle("virada"));
+    c.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); c.classList.toggle("virada"); } });
+  });
+}
+mostrarModulo("es");
+
+/* ============================================================
+   15. NÚMEROS
+   ============================================================ */
+function romano(n) {
+  const t = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+  let s = ""; t.forEach(([v, r]) => { while (n >= v) { s += r; n -= v; } }); return s;
+}
+const linhasNum = document.getElementById("linhas-num");
+const ordemNum = ["es", "it", "la", "gn"];
+function mostrarNumero(n) {
+  document.getElementById("num-gigante").textContent = n;
+  document.getElementById("romano").textContent = n === 0 ? "Os romanos não tinham símbolo para o zero" : `Em algarismo romano: ${romano(n)}`;
+  linhasNum.innerHTML = ordemNum.map(id => {
+    const l = porId(id), w = numeros[id][n];
+    const vazio = id === "la" ? "não há zero no sistema romano" : "o livro não fixa uma forma única";
+    return `<div class="linha-num" style="--cor:${l.cor}"><span>${l.nome}</span>${w ? `<b>${w}</b>` : `<b class="vazio">${vazio}</b>`}</div>`;
+  }).join("");
+}
+const slider = document.getElementById("slider");
+slider.addEventListener("input", () => mostrarNumero(+slider.value));
+mostrarNumero(7);
+
+/* ============================================================
+   16. COMPARAR + DESAFIO
+   ============================================================ */
+document.getElementById("tabela").innerHTML = comparacoes.map(l =>
+  `<tr>${l.map((c, i) => `<td class="${["", "c-es", "c-it", "c-la", "c-gn"][i]}">${c}</td>`).join("")}</tr>`).join("");
+
+const perguntas = [];
+vocab.forEach(v => ["es", "it", "la", "gn"].forEach(id => {
+  const w = v[id];
+  if (!w) return;
+  const repetida = ["es", "it", "la", "gn"].some(o => o !== id && v[o] === w);
+  if (!repetida) perguntas.push({ w, id, img: v.img, pt: v.pt });
+}));
+let acertos = 0, total = 0;
+function novaPergunta() {
+  const q = perguntas[Math.floor(Math.random() * perguntas.length)];
+  document.getElementById("palavra-quiz").textContent = q.w;
+  const img = document.getElementById("quiz-img");
+  img.src = `img/${q.img}.webp`; img.alt = q.pt;
+  const op = document.getElementById("opcoes");
+  op.innerHTML = idiomas.map(l => `<button class="opcao" type="button" data-id="${l.id}" style="--cor:${l.cor}">${l.nome}</button>`).join("");
+  op.querySelectorAll(".opcao").forEach(b => b.addEventListener("click", () => {
+    total++; if (b.dataset.id === q.id) acertos++;
+    op.querySelectorAll(".opcao").forEach(x => { x.disabled = true; if (x.dataset.id === q.id) x.classList.add("certa"); });
+    if (b.dataset.id !== q.id) b.classList.add("errada");
+    document.getElementById("placar").textContent = `${acertos} de ${total}`;
+    document.getElementById("barra-quiz").style.width = `${(acertos / total) * 100}%`;
+  }));
+}
+document.getElementById("proxima").addEventListener("click", novaPergunta);
+novaPergunta();
+
+/* surgir ao rolar */
+const obs = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) e.target.classList.remove("fora");
+}), { threshold: .15 });
+document.querySelectorAll(".surge").forEach(el => {
+  if (el.getBoundingClientRect().top > innerHeight) el.classList.add("fora");
+  obs.observe(el);
+});
+
+/* 17. A CENA 3D fica no arquivo cena.js */
+try { window.cena3d = criarCena(); }
+catch (erro) { document.getElementById("rolar").textContent = "O 3D não abriu neste aparelho, mas o resto do site funciona."; }
+verPasso();
+</script>
+<script src="extra.js"></script>
+<script src="efeitos.js"></script>
+</body>
+</html>
