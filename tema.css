@@ -228,3 +228,21 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
 @media (prefers-reduced-motion: reduce) {
   .revela, .revela.fora-baixo, .revela.fora-cima { transform: none; opacity: 1; filter: none; transition: none; }
 }
+
+/* ---------- AJUSTES PARA CELULAR ---------- */
+.dica-arraste { display: none; }
+@media (max-width: 700px) {
+  /* abertura: fundo de vidro atrás do texto para não brigar com o globo */
+  .abertura .painel { background: rgba(7, 11, 24, .72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--vidro-borda); border-radius: 20px; padding: 22px; }
+  /* livro maior na tela pequena */
+  .livro { aspect-ratio: 16 / 10; }
+  .livro.fechado-inicio { transform: rotateX(4deg) translateX(-25%); }
+  .livro.fechado-fim { transform: rotateX(4deg) translateX(25%); }
+  /* passaporte vira só o selo redondo */
+  .passaporte-btn { padding: 8px; left: 12px; bottom: 12px; }
+  .passaporte-txt { display: none; }
+  footer { padding-bottom: 80px; }
+  /* árvore: dica de arrastar */
+  .dica-arraste { display: block; text-align: center; font-family: var(--fonte-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-suave); margin-top: 8px; }
+}

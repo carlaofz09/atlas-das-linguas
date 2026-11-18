@@ -55,8 +55,8 @@ let ganhos = [];
 try { ganhos = JSON.parse(localStorage.getItem("atlas-carimbos") || "[]"); } catch (e) {}
 
 document.body.insertAdjacentHTML("beforeend", `
-  <button class="passaporte-btn" id="passaporte-btn" type="button" aria-haspopup="dialog">
-    <span class="selo" id="selo"><span id="selo-n">0</span></span> Passaporte
+  <button class="passaporte-btn" id="passaporte-btn" type="button" aria-haspopup="dialog" aria-label="Passaporte de conquistas">
+    <span class="selo" id="selo"><span id="selo-n">0</span></span> <span class="passaporte-txt">Passaporte</span>
   </button>
   <div class="passaporte" id="passaporte" role="dialog" aria-modal="true" aria-labelledby="passaporte-titulo">
     <div class="passaporte-livro">
