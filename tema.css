@@ -246,3 +246,6 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -.02em; line-height: 1.04; }
   /* árvore: dica de arrastar */
   .dica-arraste { display: block; text-align: center; font-family: var(--fonte-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--texto-suave); margin-top: 8px; }
 }
+
+/* contador de visitas no rodapé */
+.visitas { font-family: var(--fonte-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--neon); }

@@ -567,9 +567,35 @@ footer .container { display: flex; justify-content: space-between; flex-wrap: wr
 <footer>
   <div class="container">
     <span>Atlas das Línguas · Carlos Henrique · 2026</span>
+    <span class="visitas" id="visitas" hidden aria-live="polite"></span>
     <span>Projeto Missão Global IA · ilustrações do livro</span>
   </div>
 </footer>
+
+<!-- contador de visitas (GoatCounter: gratuito, sem cookies) -->
+<script>
+(function () {
+  var CODIGO = "atlas-das-linguas";
+  var publicos = ["atlas-das-linguas.netlify.app", "carlaofz09.github.io"];
+  if (publicos.indexOf(location.hostname) === -1) return; // não conta testes nem o claude.ai
+  var base = "https://" + CODIGO + ".goatcounter.com";
+  var s = document.createElement("script");
+  s.async = true; s.src = "https://gc.zgo.at/count.v4.js";
+  s.setAttribute("data-goatcounter", base + "/count");
+  document.body.appendChild(s);
+  // número total de visitas no rodapé (some sozinho se o contador não responder)
+  fetch(base + "/counter/TOTAL.json")
+    .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    .then(function (d) {
+      var n = parseInt(String(d.count).replace(/\D/g, ""), 10);
+      if (!n) return;
+      var el = document.getElementById("visitas");
+      el.textContent = "👁 " + n.toLocaleString("pt-BR") + (n === 1 ? " visita" : " visitas");
+      el.hidden = false;
+    })
+    .catch(function () {});
+})();
+</script>
 
 <script src="lib/three.min.js"></script>
 <script src="cena.js"></script>
