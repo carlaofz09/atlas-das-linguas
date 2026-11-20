@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://atlas-das-linguas.netlify.app/sitemap.xml
